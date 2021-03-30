@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import domain.Nota;
 import domain.Student;
 import domain.Tema;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import repository.NotaXMLRepository;
@@ -34,7 +35,6 @@ public class AppTestWBT
             } else {
                 System.out.println("File already exists.");
             }
-            myObj.deleteOnExit();
             FileWriter myWriter = new FileWriter(name);
             myWriter.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
                     "<Entitati>\n" +
@@ -63,6 +63,17 @@ public class AppTestWBT
 
         service = new Service(fileRepository1, fileRepository2, fileRepository3);
     }
+
+    @After
+    public void deleteFiles() {
+        File myObj = new File("studenti_test.xml");
+        myObj.delete();
+        myObj = new File("teme_test.xml");
+        myObj.delete();
+        myObj = new File("note_test.xml");
+        myObj.delete();
+    }
+
 
     @Test
     public void addAssignment_Description_empty(){
