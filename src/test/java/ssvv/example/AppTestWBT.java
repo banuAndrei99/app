@@ -65,7 +65,7 @@ public class AppTestWBT
     }
 
     @Test
-    public void addAssignment_Description(){
+    public void addAssignment_Description_empty(){
         assertEquals(0, service.findAllTeme().spliterator().getExactSizeIfKnown());
 
         try{
@@ -75,12 +75,22 @@ public class AppTestWBT
             assertEquals("Descriere nula! \n", e.getMessage());
         }
         assertEquals(0, service.findAllTeme().spliterator().getExactSizeIfKnown());
+    }
+
+    @Test
+    public void addAssignment_Description_null() {
+        assertEquals(0, service.findAllTeme().spliterator().getExactSizeIfKnown());
         try{
             service.saveTema("1000", null, 7, 5);
         }
         catch (ValidationException e) {
             assertEquals("Descriere invalida! \n", e.getMessage());
         }
+        assertEquals(0, service.findAllTeme().spliterator().getExactSizeIfKnown());
+    }
+
+    @Test
+    public void addAssignment_Description_valid() {
         assertEquals(0, service.findAllTeme().spliterator().getExactSizeIfKnown());
 
         service.saveTema("1000", "o descriere", 7, 5);

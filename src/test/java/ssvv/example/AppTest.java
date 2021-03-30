@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import domain.Nota;
 import domain.Student;
 import domain.Tema;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import repository.NotaXMLRepository;
@@ -34,7 +35,6 @@ public class AppTest
             } else {
                 System.out.println("File already exists.");
             }
-            myObj.deleteOnExit();
             FileWriter myWriter = new FileWriter(name);
             myWriter.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
                     "<Entitati>\n" +
@@ -63,8 +63,31 @@ public class AppTest
 
         service = new Service(fileRepository1, fileRepository2, fileRepository3);
     }
+
+    @After
+    public void deleteFiles() {
+        File myObj = new File("studenti_test.xml");
+        myObj.delete();
+        myObj = new File("teme_test.xml");
+        myObj.delete();
+        myObj = new File("note_test.xml");
+        myObj.delete();
+    }
+
     @Test
-    public void addStudent_id()
+    public void addStudent_Id_null(){
+        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+        try{
+            service.saveStudent(null, "andrei", 931);
+        }
+        catch (ValidationException e) {
+            assertEquals("ID invalid! \n", e.getMessage());
+        }
+        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+
+    }
+    @Test
+    public void addStudent_Id_empty()
     {
         assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
 
@@ -75,14 +98,11 @@ public class AppTest
             assertEquals("ID invalid! \n", e.getMessage());
         }
         assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
-        try{
-            service.saveStudent(null, "andrei", 931);
-        }
-        catch (ValidationException e) {
-            assertEquals("ID invalid! \n", e.getMessage());
-        }
 
-        // Boundaries
+    }
+
+    @Test
+    public void addStudent_Id_underLowerBoundary() {
         assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
 
         try{
@@ -92,6 +112,25 @@ public class AppTest
             assertEquals("Id trebuie sa fie un integer pozitiv\n", e.getMessage());
         }
         assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+    }
+
+    @Test
+    public void addStudent_Id_equalLowerBoundary() {
+        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+        service.saveStudent("0", "Andrei", 931);
+        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
+    }
+
+    @Test
+    public void addStudent_Id_aboveLowerBoundary() {
+        service.saveStudent("1", "Andrei", 931);
+        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
+    }
+
+    @Test
+    public void addStudent_Id_aboveUpperBoundary() {
+        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+
         try{
             service.saveStudent(IntMaxValuePlusOne, "andrei", 931);
         }
@@ -99,26 +138,23 @@ public class AppTest
             assertEquals("Id trebuie sa fie un integer pozitiv\n", e.getMessage());
         }
         assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
-
-
-        service.saveStudent("0", "Andrei", 931);
-        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
-        service.deleteStudent("0");
-        service.saveStudent("1", "Andrei", 931);
-        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
-        service.deleteStudent("1");
-        service.saveStudent(String.valueOf(Integer.MAX_VALUE), "Andrei", 931);
-        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
-        service.deleteStudent(String.valueOf(Integer.MAX_VALUE));
-        service.saveStudent(String.valueOf(Integer.MAX_VALUE-1), "Andrei", 931);
-        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
-        service.deleteStudent(String.valueOf(Integer.MAX_VALUE-1));
-        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
-        // END BOUNDARIES
     }
 
     @Test
-    public void addStudent_nume(){
+    public void addStudent_Id_equalUpperBoundary() {
+        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+        service.saveStudent(String.valueOf(Integer.MAX_VALUE), "Andrei", 931);
+        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
+    }
+
+    @Test
+    public void addStudent_Id_underUpperBoundary() {
+        service.saveStudent(String.valueOf(Integer.MAX_VALUE - 1), "Andrei", 931);
+        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
+    }
+
+    @Test
+    public void addStudent_Nume_empty(){
         assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
 
         try{
@@ -127,6 +163,12 @@ public class AppTest
         catch (ValidationException e) {
             assertEquals("Nume invalid! \n", e.getMessage());
         }
+        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+
+    }
+
+    @Test
+    public void addStudent_Nume_null() {
         assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
         try{
             service.saveStudent("931", null, 931);
@@ -138,40 +180,56 @@ public class AppTest
     }
 
     @Test
-    public void addStudent_grupa() {
+    public void addStudent_Grupa_underLowerBoundary() {
         assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
-
         try{
-            service.saveStudent("931", "andrei", 110);
+            service.saveStudent("931", "Andrei", 110);
         }
         catch (ValidationException e) {
             assertEquals("Grupa invalida! \n", e.getMessage());
         }
-        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
-        try{
-            service.saveStudent("931", "andrei", 938);
-        }
-        catch (ValidationException e) {
-            assertEquals("Grupa invalida! \n", e.getMessage());
-        }
-        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
-
-        service.saveStudent("1", "Andrei", 111);
-        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
-        service.deleteStudent("1");
-
-        service.saveStudent("1", "Andrei", 112);
-        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
-        service.deleteStudent("1");
-
-        service.saveStudent("1", "Andrei", 936);
-        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
-        service.deleteStudent("1");
-
-        service.saveStudent("1", "Andrei", 937);
-        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
-        service.deleteStudent("1");
-
         assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
     }
+
+    @Test
+    public void addStudent_Grupa_equalLowerBoundary() {
+        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+        service.saveStudent("931", "Andrei", 111);
+        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
+    }
+
+    @Test
+    public void addStudent_Grupa_aboveLowerBoundary() {
+        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+        service.saveStudent("931", "Andrei", 112);
+        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
+    }
+
+
+    @Test
+    public void addStudent_Grupa_underUpperBoundary() {
+        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+        service.saveStudent("931", "Andrei", 936);
+        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
+    }
+
+    @Test
+    public void addStudent_Grupa_equalUpperBoundary() {
+        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+        service.saveStudent("931", "Andrei", 937);
+        assertEquals(1, service.findAllStudents().spliterator().getExactSizeIfKnown());
+    }
+
+    @Test
+    public void addStudent_Grupa_aboveUpperBoundary() {
+        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+        try{
+            service.saveStudent("931", "Andrei", 939);
+        }
+        catch (ValidationException e) {
+            assertEquals("Grupa invalida! \n", e.getMessage());
+        }
+        assertEquals(0, service.findAllStudents().spliterator().getExactSizeIfKnown());
+    }
+
 }
